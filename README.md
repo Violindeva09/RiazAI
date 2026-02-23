@@ -65,6 +65,23 @@ $env:PORT=8081
 mvn spring-boot:run
 ```
 
+## Commit changes to GitHub
+
+Run these commands after making edits:
+
+```bash
+git status
+git add .
+git commit -m "<your message>"
+git push origin <your-branch>
+```
+
+If this is your first push of the branch:
+
+```bash
+git push -u origin <your-branch>
+```
+
 ## Test
 
 ```bash
