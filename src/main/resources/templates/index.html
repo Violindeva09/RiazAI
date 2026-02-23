@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title}">RiyazAI</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>RiyazAI</h1>
+        <p>Intelligent Practice Analytics System for Musicians</p>
+    </header>
+
+    <section class="card">
+        <h2>Upload today's practice recording</h2>
+        <form method="post" action="/analyse" enctype="multipart/form-data">
+            <input type="file" name="audioFile" accept="audio/*" required>
+            <button type="submit">Analyse Session</button>
+        </form>
+        <p class="hint">Supported: any audio file format accepted by your browser upload.</p>
+    </section>
+
+    <section th:if="${error}" class="card error" th:text="${error}"></section>
+
+    <section th:if="${metrics}" class="card metrics">
+        <h2>Session Report <span th:text="${fileName}"></span></h2>
+        <div class="metric-grid">
+            <article>
+                <h3>Accuracy</h3>
+                <p th:text="${metrics.accuracyPercentage()} + '%'">0%</p>
+            </article>
+            <article>
+                <h3>Note Stability</h3>
+                <p th:text="${metrics.noteStability()} + '%'">0%</p>
+            </article>
+            <article>
+                <h3>Consistency</h3>
+                <p th:text="${metrics.consistencyScore()} + '%'">0%</p>
+            </article>
+        </div>
+
+        <h3>Improvement trend (last 6 sessions)</h3>
+        <ol class="trend-list">
+            <li th:each="value,stat : ${metrics.trendSeries()}">
+                Session <span th:text="${stat.index + 1}"></span>: <strong th:text="${value} + '%'">0%</strong>
+            </li>
+        </ol>
+
+        <h3>Personalised feedback</h3>
+        <p th:text="${metrics.personalisedFeedback()}"></p>
+    </section>
+</div>
+</body>
+</html>
