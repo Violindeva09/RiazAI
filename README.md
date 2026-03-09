@@ -33,6 +33,9 @@ Open: `http://localhost:8080`
 mvn test
 ```
 
+<img width="1536" height="1024" alt="Architecture-RiazAI" src="https://github.com/user-attachments/assets/16902c17-355a-4c3f-9514-553ebf282b56" />
+
+
 ## Abstract
 
 In 2026, many music students practice independently without structured guidance, making it hard to measure improvement or identify technical mistakes. RiyazAI addresses this by analysing uploaded practice recordings and generating pitch and consistency-driven metrics, trend insights, and actionable feedback so progress becomes measurable, efficient, and goal-oriented.
