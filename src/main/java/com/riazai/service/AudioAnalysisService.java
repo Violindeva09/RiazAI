@@ -3,6 +3,8 @@ package com.riazai.service;
 import com.riazai.model.PerformanceMetrics;
 import com.riazai.model.PracticeSession;
 import com.riazai.repository.PracticeSessionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,6 +18,7 @@ import java.util.stream.Collectors;
 @Service
 public class AudioAnalysisService {
 
+    private static final Logger logger = LoggerFactory.getLogger(AudioAnalysisService.class);
     private final PracticeSessionRepository repository;
 
     public AudioAnalysisService(PracticeSessionRepository repository) {
@@ -23,6 +26,7 @@ public class AudioAnalysisService {
     }
 
     public PerformanceMetrics analysePractice(MultipartFile file) throws IOException {
+        logger.info("Starting audio analysis for file: {}", file.getOriginalFilename());
         byte[] bytes = file.getBytes();
         if (bytes.length == 0) {
             throw new IllegalArgumentException("Uploaded file is empty");
@@ -38,8 +42,10 @@ public class AudioAnalysisService {
         // Save to database
         PracticeSession session = new PracticeSession(file.getOriginalFilename(), accuracy, stability, consistency);
         repository.save(session);
+        logger.debug("Saved session results to database for file: {}", file.getOriginalFilename());
 
         List<Double> trend = buildTrend();
+        logger.info("Analysis complete for file: {}. Consistency: {}%", file.getOriginalFilename(), consistency);
         String feedback = buildFeedback(accuracy, stability, consistency);
 
         return new PerformanceMetrics(accuracy, stability, consistency, trend, feedback);
