@@ -3,54 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${title}">RiyazAI</title>
+    <title th:text="${title}">RiazAI - Intelligent Practice Analytics</title>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/styles.css}">
 </head>
 <body>
+
+<!-- JS Loading Overlay triggered by form submission -->
+<div id="loadingOverlay">
+    <div class="spinner"></div>
+    <h3 style="color: var(--accent-teal); font-size: 1.5rem; margin: 0; font-weight: 600; letter-spacing: -0.5px;">Analyzing your performance with AI...</h3>
+    <p style="color: var(--text-secondary); font-size: 1rem; margin-top: 0.5rem;">Generating personalized pitch and stability feedback</p>
+</div>
+
 <div class="container">
     <header>
-        <h1>RiyazAI</h1>
-        <p>Intelligent Practice Analytics System for Musicians</p>
+        <div>
+            <h1>RiazAI</h1>
+            <p>Welcome back, <strong th:text="${username}" style="color:var(--accent-teal)">User</strong>. Let's analyze today's Riyaz.</p>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <div class="profile-icon">👤</div>
+            <form th:action="@{/logout}" method="post" style="margin:0;">
+                <button type="submit" style="background:transparent; border:1px solid var(--border-light); color:var(--text-secondary); padding:0.5rem 1rem; border-radius:6px; cursor:pointer; font-weight: 600;">Logout</button>
+            </form>
+        </div>
     </header>
 
-    <section class="card">
+    <div th:if="${error}" class="error-banner" th:text="${error}"></div>
+
+    <!-- The Upload Zone -->
+    <section class="glass-panel upload-zone">
         <h2>Upload today's practice recording</h2>
-        <form method="post" action="/analyse" enctype="multipart/form-data">
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Supported formats: .mp3, .wav, .m4a</p>
+        
+        <form method="post" action="/analyse" enctype="multipart/form-data" onsubmit="showLoading()">
             <input type="file" name="audioFile" accept="audio/*" required>
-            <button type="submit">Analyse Session</button>
+            <br>
+            <button type="submit">✨ Analyse Session</button>
         </form>
-        <p class="hint">Supported: any audio file format accepted by your browser upload.</p>
     </section>
 
-    <section th:if="${error}" class="card error" th:text="${error}"></section>
-
-    <section th:if="${metrics}" class="card metrics">
-        <h2>Session Report <span th:text="${fileName}"></span></h2>
+    <!-- Key Metrics Overview -->
+    <div th:if="${metrics}">
+        <h2 class="metrics-header">Session Report: <span style="color:#64FFDA; font-weight: 400;" th:text="${fileName}"></span></h2>
+        
         <div class="metric-grid">
-            <article>
-                <h3>Accuracy</h3>
-                <p th:text="${metrics.accuracyPercentage()} + '%'">0%</p>
+            <article class="glass-panel metric-card">
+                <h3>Pitch Accuracy</h3>
+                <!-- SVG Icon for Pitch -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2" style="margin-bottom: 10px;">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                <p class="metric-value val-teal"><span th:text="${metrics.accuracyPercentage()}">0</span>%</p>
             </article>
-            <article>
+            
+            <article class="glass-panel metric-card">
                 <h3>Note Stability</h3>
-                <p th:text="${metrics.noteStability()} + '%'">0%</p>
+                <!-- SVG Icon for Waveform/Stability -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" style="margin-bottom: 10px;">
+                    <path d="M4 12V8M8 16V4M12 20V8M16 16v-4M20 12v-2"></path>
+                </svg>
+                <p class="metric-value val-blue"><span th:text="${metrics.noteStability()}">0</span>%</p>
             </article>
-            <article>
-                <h3>Consistency</h3>
-                <p th:text="${metrics.consistencyScore()} + '%'">0%</p>
+            
+            <article class="glass-panel metric-card">
+                <h3>Overall Consistency</h3>
+                <!-- SVG Icon for Target/Consistency -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" style="margin-bottom: 10px;">
+                    <circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>
+                </svg>
+                <p class="metric-value val-orange"><span th:text="${metrics.consistencyScore()}">0</span>%</p>
             </article>
         </div>
 
-        <h3>Improvement trend (last 6 sessions)</h3>
-        <ol class="trend-list">
-            <li th:each="value,stat : ${metrics.trendSeries()}">
-                Session <span th:text="${stat.index + 1}"></span>: <strong th:text="${value} + '%'">0%</strong>
-            </li>
-        </ol>
+        <div class="lower-grid">
+            <!-- Historical Trends -->
+            <article class="glass-panel trend-card">
+                <h3>📈 Improvement Trend</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0; margin-bottom: 1.5rem;">Consistency trajectory over recent sessions (up to 6)</p>
+                <ul class="trend-list">
+                    <li th:each="value,stat : ${metrics.trendSeries()}">
+                        <span>Session <span th:text="${stat.index + 1}"></span></span>
+                        <strong th:text="${value} + '%'">0%</strong>
+                    </li>
+                </ul>
+            </article>
 
-        <h3>Personalised feedback</h3>
-        <p th:text="${metrics.personalisedFeedback()}"></p>
-    </section>
+            <!-- AI Personalized Feedback -->
+            <article class="glass-panel feedback-card">
+                <h3>🧠 AI Coach Insights</h3>
+                <p class="feedback-text" th:text="${metrics.personalisedFeedback()}">
+                    Loading insights...
+                </p>
+            </article>
+        </div>
+    </div>
 </div>
+
+<script>
+    // Smoothly intercept the form submission to show the glowing glassmorphism loader.
+    // This perfectly solves the problem of users closing the tab while waiting for OpenAI!
+    function showLoading() {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+    }
+</script>
+
 </body>
 </html>

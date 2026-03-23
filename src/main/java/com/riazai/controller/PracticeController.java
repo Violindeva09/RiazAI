@@ -22,14 +22,16 @@ public class PracticeController {
     }
 
     @GetMapping("/")
-    public String home(Model model) {
-        model.addAttribute("title", "RiyazAI - Intelligent Practice Analytics");
+    public String home(Model model, java.security.Principal principal) {
+        model.addAttribute("title", "RiazAI - Intelligent Practice Analytics");
+        model.addAttribute("username", principal != null ? principal.getName() : "User");
         return "index";
     }
 
     @PostMapping("/analyse")
-    public String analyse(@RequestParam("audioFile") @NotNull MultipartFile audioFile, Model model) {
-        model.addAttribute("title", "RiyazAI - Intelligent Practice Analytics");
+    public String analyse(@RequestParam("audioFile") @NotNull MultipartFile audioFile, Model model, java.security.Principal principal) {
+        model.addAttribute("title", "RiazAI - Intelligent Practice Analytics");
+        model.addAttribute("username", principal != null ? principal.getName() : "User");
 
         if (audioFile == null || audioFile.isEmpty()) {
             model.addAttribute("error", "Please upload a recording file before analysing.");
