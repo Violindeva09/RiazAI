@@ -2,14 +2,17 @@ package com.riazai.controller;
 
 import com.riazai.model.User;
 import com.riazai.repository.UserRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api")
 public class AuthController {
 
     private final UserRepository userRepository;
@@ -20,24 +23,16 @@ public class AuthController {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @GetMapping("/login")
-    public String login() {
-        return "login";
-    }
-
-    @GetMapping("/signup")
-    public String signup() {
-        return "signup";
-    }
-
     @PostMapping("/signup")
-    public String processSignup(@RequestParam String username, @RequestParam String password, Model model) {
+    public ResponseEntity<?> processSignup(@RequestBody Map<String, String> payload) {
+        String username = payload.get("username");
+        String password = payload.get("password");
+        
         if (userRepository.findByUsername(username).isPresent()) {
-            model.addAttribute("error", "That username is already taken. Please choose another.");
-            return "signup";
+            return ResponseEntity.badRequest().body(Map.of("error", "That username is already taken. Please choose another."));
         }
         User user = new User(username, passwordEncoder.encode(password));
         userRepository.save(user);
-        return "redirect:/login?registered";
+        return ResponseEntity.ok(Map.of("success", true, "message", "User created successfully."));
     }
 }

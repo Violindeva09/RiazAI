@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - RiazAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="auth-body">
+
+<div class="auth-container">
+    <div class="glass-panel auth-card">
+        <div class="auth-header">
+            <h1>RiazAI.</h1>
+            <h2>Join RiazAI</h2>
+            <p>Create an account to start tracking.</p>
+        </div>
+
+        <div id="error-banner" class="error-banner" style="display: none;"></div>
+
+        <form id="signup-form">
+            <div class="form-group">
+                <input type="text" id="username" class="auth-input" placeholder="Choose a Username" required autofocus>
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" class="auth-input" placeholder="Create a Password" required>
+            </div>
+
+            <button type="submit" class="auth-btn">Sign Up</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Already have an account? <a href="login.html">Sign in</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const eb = document.getElementById('error-banner');
+        eb.style.display = 'none';
+        
+        try {
+            await api.signup(
+                document.getElementById('username').value,
+                document.getElementById('password').value
+            );
+            window.location.href = 'login.html?registered=true';
+        } catch (err) {
+            eb.textContent = err.message || "Could not create account. Username might be taken.";
+            eb.style.display = 'block';
+        }
+    });
+</script>
+
+</body>
+</html>
