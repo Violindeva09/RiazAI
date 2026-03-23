@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">RiazAI - Intelligent Practice Analytics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- JS Loading Overlay triggered by form submission -->
+<div id="loadingOverlay">
+    <div class="spinner"></div>
+    <h3 style="color: var(--accent-teal); font-size: 1.5rem; margin: 0; font-weight: 600; letter-spacing: -0.5px;">Analyzing your performance with AI...</h3>
+    <p style="color: var(--text-secondary); font-size: 1rem; margin-top: 0.5rem;">Generating personalized pitch and stability feedback</p>
+</div>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>RiazAI</h1>
+            <p>Welcome back, <strong id="username-display" style="color:var(--accent-teal)">User</strong>. Let's analyze today's Riyaz.</p>
+        </div>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <div class="profile-icon">👤</div>
+            <button id="logout-btn" style="background:transparent; border:1px solid var(--border-light); color:var(--text-secondary); padding:0.5rem 1rem; border-radius:6px; cursor:pointer; font-weight: 600;">Logout</button>
+        </div>
+    </header>
+
+    <div id="error-banner" class="error-banner" style="display: none;"></div>
+
+    <!-- The Upload Zone -->
+    <section class="glass-panel upload-zone">
+        <h2>Upload today's practice recording</h2>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Supported formats: .mp3, .wav, .m4a</p>
+        
+        <form id="upload-form">
+            <input type="file" id="audioFile" accept="audio/*" required>
+            <br>
+            <button type="submit">✨ Analyse Session</button>
+        </form>
+    </section>
+
+    <!-- Key Metrics Overview (Hidden Initially) -->
+    <div id="metrics-container" style="display: none;">
+        <h2 class="metrics-header">Session Report: <span id="file-name-display" style="color:#64FFDA; font-weight: 400;"></span></h2>
+        
+        <div class="metric-grid">
+            <article class="glass-panel metric-card">
+                <h3>Pitch Accuracy</h3>
+                <!-- SVG Icon for Pitch -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2" style="margin-bottom: 10px;">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                <p class="metric-value val-teal"><span id="metric-accuracy">0</span>%</p>
+            </article>
+            
+            <article class="glass-panel metric-card">
+                <h3>Note Stability</h3>
+                <!-- SVG Icon for Waveform/Stability -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2" style="margin-bottom: 10px;">
+                    <path d="M4 12V8M8 16V4M12 20V8M16 16v-4M20 12v-2"></path>
+                </svg>
+                <p class="metric-value val-blue"><span id="metric-stability">0</span>%</p>
+            </article>
+            
+            <article class="glass-panel metric-card">
+                <h3>Overall Consistency</h3>
+                <!-- SVG Icon for Target/Consistency -->
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-orange)" stroke-width="2" style="margin-bottom: 10px;">
+                    <circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>
+                </svg>
+                <p class="metric-value val-orange"><span id="metric-consistency">0</span>%</p>
+            </article>
+        </div>
+
+        <div class="lower-grid">
+            <!-- Historical Trends -->
+            <article class="glass-panel trend-card">
+                <h3>📈 Improvement Trend</h3>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0; margin-bottom: 1.5rem;">Consistency trajectory over recent sessions (up to 6)</p>
+                <ul id="trend-list" class="trend-list">
+                    <!-- Populated via JS -->
+                </ul>
+            </article>
+
+            <!-- AI Personalized Feedback -->
+            <article class="glass-panel feedback-card">
+                <h3>🧠 AI Coach Insights</h3>
+                <p id="feedback-text" class="feedback-text">
+                    Loading insights...
+                </p>
+            </article>
+        </div>
+    </div>
+</div>
+
+<script src="api.js"></script>
+<script>
+    // Load initial user data
+    window.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const user = await api.getUser();
+            document.getElementById('username-display').textContent = user.username || 'User';
+        } catch (e) {
+            // Already handled in api.js (redirects to login)
+            console.error('Failed to get user', e);
+        }
+    });
+
+    // Handle Logout
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+        try {
+            await api.logout();
+            window.location.href = 'login.html?logout=true';
+        } catch(e) {
+            console.error(e);
+        }
+    });
+
+    // Handle File Upload and Analysis
+    document.getElementById('upload-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('audioFile');
+        const file = fileInput.files[0];
+        
+        if (!file) return;
+
+        const eb = document.getElementById('error-banner');
+        eb.style.display = 'none';
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        
+        const formData = new FormData();
+        formData.append('audioFile', file);
+        
+        try {
+            const metrics = await api.analyse(formData);
+            
+            // Populate metrics
+            document.getElementById('file-name-display').textContent = file.name;
+            document.getElementById('metric-accuracy').textContent = metrics.accuracyPercentage;
+            document.getElementById('metric-stability').textContent = metrics.noteStability;
+            document.getElementById('metric-consistency').textContent = metrics.consistencyScore;
+            
+            document.getElementById('feedback-text').textContent = metrics.personalisedFeedback;
+            
+            // Populate trends
+            const trendList = document.getElementById('trend-list');
+            trendList.innerHTML = '';
+            if (metrics.trendSeries && metrics.trendSeries.length > 0) {
+                metrics.trendSeries.forEach((val, index) => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<span>Session <span>${index + 1}</span></span><strong>${val}%</strong>`;
+                    trendList.appendChild(li);
+                });
+            } else {
+                trendList.innerHTML = '<li><span style="color:var(--text-secondary)">First session recorded. Keep practicing!</span></li>';
+            }
+            
+            document.getElementById('loadingOverlay').style.display = 'none';
+            document.getElementById('metrics-container').style.display = 'block';
+            
+            // Clear input
+            fileInput.value = '';
+            
+        } catch (err) {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            eb.textContent = err.message || "Failed to analyze the session.";
+            eb.style.display = 'block';
+        }
+    });
+</script>
+
+</body>
+</html>
