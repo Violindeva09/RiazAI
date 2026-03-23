@@ -14,7 +14,7 @@ RiyazAI is a Spring Boot + Maven web application prototype that helps musicians 
 
 ## Tech stack
 
-- Java 17
+- Java 21
 - Spring Boot 3
 - Maven
 - Thymeleaf (server-side rendered dashboard)
@@ -26,6 +26,10 @@ mvn spring-boot:run
 ```
 
 Open: `http://localhost:8080`
+
+**Default Login Credentials:**
+- **Username:** `admin`
+- **Password:** `riazai_secure_2026`
 
 ## Test
 

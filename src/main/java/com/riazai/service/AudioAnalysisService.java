@@ -18,9 +18,11 @@ public class AudioAnalysisService {
 
     private static final Logger logger = LoggerFactory.getLogger(AudioAnalysisService.class);
     private final PracticeSessionRepository repository;
+    private final org.springframework.ai.chat.client.ChatClient chatClient;
 
-    public AudioAnalysisService(PracticeSessionRepository repository) {
+    public AudioAnalysisService(PracticeSessionRepository repository, org.springframework.ai.chat.client.ChatClient.Builder chatClientBuilder) {
         this.repository = repository;
+        this.chatClient = chatClientBuilder.build();
     }
 
     public PerformanceMetrics analysePractice(MultipartFile file) throws IOException {
@@ -44,7 +46,7 @@ public class AudioAnalysisService {
 
         List<Double> trend = buildTrend();
         logger.info("Analysis complete for file: {}. Consistency: {}%", file.getOriginalFilename(), consistency);
-        String feedback = buildFeedback(accuracy, stability, consistency);
+        String feedback = buildFeedback(accuracy, stability, consistency, trend);
 
         return new PerformanceMetrics(accuracy, stability, consistency, trend, feedback);
     }
@@ -73,17 +75,25 @@ public class AudioAnalysisService {
         return scores;
     }
 
-    String buildFeedback(double accuracy, double stability, double consistency) {
-        if (consistency > 85) {
-            return "Excellent session. Your pitch control and note steadiness are strong—keep this routine and increase tempo gradually.";
+    String buildFeedback(double accuracy, double stability, double consistency, List<Double> trend) {
+        String prompt = String.format("You are a supportive, expert music teacher analyzing a student's practice session. " +
+                "Their accuracy score was %.2f%%, and note stability was %.2f%%. Their overall consistency score is %.2f%%. " +
+                "Their recent consistency scores over the past few sessions were: %s. " +
+                "Write 2 sentences of highly specific, encouraging advice for their next practice session.", 
+                accuracy, stability, consistency, trend.toString());
+        
+        try {
+            return chatClient.prompt()
+                    .user(prompt)
+                    .call()
+                    .content();
+        } catch (Exception e) {
+            logger.error("Failed to call LLM for feedback", e);
+            if (consistency > 85) return "Excellent session. Your pitch control and note steadiness are strong—keep this routine and increase tempo gradually.";
+            if (accuracy < 75) return "Focus on slow alankar patterns with a tanpura reference to improve pitch placement before speed work.";
+            if (stability < 75) return "Sustain each note for longer counts and monitor breath/voice support to improve stability.";
+            return "Good progress. Alternate technical drills with one expressive piece to maintain consistency and musicality.";
         }
-        if (accuracy < 75) {
-            return "Focus on slow alankar patterns with a tanpura reference to improve pitch placement before speed work.";
-        }
-        if (stability < 75) {
-            return "Sustain each note for longer counts and monitor breath/voice support to improve stability.";
-        }
-        return "Good progress. Alternate technical drills with one expressive piece to maintain consistency and musicality.";
     }
 
     private double roundTwoDecimals(double value) {

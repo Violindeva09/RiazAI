@@ -23,7 +23,15 @@ class AudioAnalysisServiceTest {
     @BeforeEach
     void setUp() {
         repository = Mockito.mock(PracticeSessionRepository.class);
-        service = new AudioAnalysisService(repository);
+        
+        // Mock ChatClient using deep stubs to correctly handle the fluent API chain without needing specific nested classes
+        org.springframework.ai.chat.client.ChatClient.Builder builder = Mockito.mock(org.springframework.ai.chat.client.ChatClient.Builder.class);
+        org.springframework.ai.chat.client.ChatClient chatClient = Mockito.mock(org.springframework.ai.chat.client.ChatClient.class, Mockito.RETURNS_DEEP_STUBS);
+        
+        when(builder.build()).thenReturn(chatClient);
+        when(chatClient.prompt().user(any(String.class)).call().content()).thenReturn("AI Personalized Feedback string here.");
+
+        service = new AudioAnalysisService(repository, builder);
     }
 
     @Test
