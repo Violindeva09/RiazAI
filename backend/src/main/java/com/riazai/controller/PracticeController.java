@@ -40,7 +40,6 @@ public class PracticeController {
 
         try {
             PerformanceMetrics metrics = analysisService.analysePractice(audioFile);
-            System.out.println("DEBUG: Returning metrics: " + metrics);
             return ResponseEntity.ok(metrics);
         } catch (IllegalArgumentException | IOException exception) {
             return ResponseEntity.badRequest().body(Map.of("error", "Unable to process this file: " + exception.getMessage()));

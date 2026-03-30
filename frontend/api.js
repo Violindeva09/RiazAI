@@ -12,7 +12,16 @@ async function handleResponse(response) {
     let data;
     try {
         data = text ? JSON.parse(text) : {};
+        // If it's a string containing HTML, it's likely a redirect to login
+        if (typeof data === 'string' && data.includes('<!DOCTYPE html>')) {
+            throw new Error('HTML response received');
+        }
     } catch(e) {
+        // If it's HTML, treat it as a session expiry
+        if (text && text.includes('<!DOCTYPE html>')) {
+            window.location.href = 'login.html?error=session_expired';
+            throw new Error('Unauthorized');
+        }
         data = text;
     }
 

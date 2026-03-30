@@ -48,6 +48,17 @@ public class SecurityConfig {
                 .permitAll()
             )
             .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**", "/api/analyse", "/api/signup", "/login", "/api/logout"))
+            .exceptionHandling(exception -> exception
+                .authenticationEntryPoint((request, response, authException) -> {
+                    if (request.getRequestURI().startsWith("/api/")) {
+                        response.setStatus(401);
+                        response.setContentType("application/json");
+                        response.getWriter().write("{\"error\": \"Unauthorized: Please log in to access this resource.\"}");
+                    } else {
+                        response.sendRedirect("/login");
+                    }
+                })
+            )
             .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)); // Required for console
         
         return http.build();
