@@ -2,6 +2,7 @@ package com.riazai.service;
 
 import com.riazai.model.PerformanceMetrics;
 import com.riazai.model.PracticeSession;
+import com.riazai.model.User;
 import com.riazai.repository.PracticeSessionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +26,7 @@ public class AudioAnalysisService {
         this.chatClient = chatClientBuilder.build();
     }
 
-    public PerformanceMetrics analysePractice(MultipartFile file) throws IOException {
+    public PerformanceMetrics analysePractice(MultipartFile file, User user) throws IOException {
         logger.info("Starting audio analysis for file: {}", file.getOriginalFilename());
         byte[] bytes = file.getBytes();
         if (bytes.length == 0) {
@@ -40,11 +41,11 @@ public class AudioAnalysisService {
         double consistency = roundTwoDecimals((accuracy * 0.55) + (stability * 0.45));
 
         // Save to database
-        PracticeSession session = new PracticeSession(file.getOriginalFilename(), accuracy, stability, consistency);
+        PracticeSession session = new PracticeSession(file.getOriginalFilename(), accuracy, stability, consistency, user);
         repository.save(session);
-        logger.debug("Saved session results to database for file: {}", file.getOriginalFilename());
+        logger.debug("Saved session results to database for file: {} and user: {}", file.getOriginalFilename(), user.getUsername());
 
-        List<Double> trend = buildTrend();
+        List<Double> trend = buildTrend(user);
         logger.info("Analysis complete for file: {}. Consistency: {}%", file.getOriginalFilename(), consistency);
         String feedback = buildFeedback(accuracy, stability, consistency, trend);
 
@@ -69,8 +70,8 @@ public class AudioAnalysisService {
         return Math.min(1.0, (sumSquared / bytes.length) / (127.0 * 127.0));
     }
 
-    List<Double> buildTrend() {
-        List<Double> scores = repository.findRecentConsistencyScores(PageRequest.of(0, 6));
+    List<Double> buildTrend(User user) {
+        List<Double> scores = repository.findRecentConsistencyScoresByUser(user, PageRequest.of(0, 6));
         Collections.reverse(scores); // Show oldest to newest
         return scores;
     }
