@@ -137,14 +137,15 @@
         
         try {
             const metrics = await api.analyse(formData);
+            console.log("Analysis Result:", metrics); // Diagnostic Log
             
             // Populate metrics
             document.getElementById('file-name-display').textContent = file.name;
-            document.getElementById('metric-accuracy').textContent = metrics.accuracyPercentage;
-            document.getElementById('metric-stability').textContent = metrics.noteStability;
-            document.getElementById('metric-consistency').textContent = metrics.consistencyScore;
+            document.getElementById('metric-accuracy').textContent = metrics.accuracyPercentage !== undefined ? metrics.accuracyPercentage : '0';
+            document.getElementById('metric-stability').textContent = metrics.noteStability !== undefined ? metrics.noteStability : '0';
+            document.getElementById('metric-consistency').textContent = metrics.consistencyScore !== undefined ? metrics.consistencyScore : '0';
             
-            document.getElementById('feedback-text').textContent = metrics.personalisedFeedback;
+            document.getElementById('feedback-text').textContent = metrics.personalisedFeedback || "Analysis complete, but no specific feedback was generated.";
             
             // Populate trends
             const trendList = document.getElementById('trend-list');

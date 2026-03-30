@@ -17,7 +17,7 @@ async function handleResponse(response) {
     }
 
     if (!response.ok) {
-        throw new Error(data.message || 'Request failed');
+        throw new Error(data.error || data.message || 'Request failed');
     }
     return data;
 }
