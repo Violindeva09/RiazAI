@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080'; // Change for production
+const API_BASE_URL = 'https://riazai-backend-h8yt.onrender.com'; // Production Backend URL
 
 // Helper to handle API responses
 async function handleResponse(response) {
