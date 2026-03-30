@@ -5,6 +5,7 @@ import com.riazai.repository.PracticeSessionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import com.riazai.model.User;
 import org.springframework.mock.web.MockMultipartFile;
 
 import java.io.IOException;
@@ -38,10 +39,11 @@ class AudioAnalysisServiceTest {
     void analysePracticeReturnsMetricsWithinRange() throws IOException {
         byte[] bytes = new byte[]{0, 20, -20, 45, -45, 100, -100};
         MockMultipartFile file = new MockMultipartFile("audioFile", "test.wav", "audio/wav", bytes);
+        User testUser = new User("test", "pass");
 
-        when(repository.findRecentConsistencyScores(any())).thenReturn(Collections.singletonList(85.0));
+        when(repository.findRecentConsistencyScoresByUser(any(User.class), any())).thenReturn(Collections.singletonList(85.0));
 
-        PerformanceMetrics metrics = service.analysePractice(file);
+        PerformanceMetrics metrics = service.analysePractice(file, testUser);
 
         assertThat(metrics.accuracyPercentage()).isBetween(60.0, 100.0);
         assertThat(metrics.noteStability()).isBetween(55.0, 100.0);
@@ -53,8 +55,9 @@ class AudioAnalysisServiceTest {
     @Test
     void analysePracticeRejectsEmptyFile() {
         MockMultipartFile file = new MockMultipartFile("audioFile", "empty.wav", "audio/wav", new byte[]{});
+        User testUser = new User("test", "pass");
 
-        assertThatThrownBy(() -> service.analysePractice(file))
+        assertThatThrownBy(() -> service.analysePractice(file, testUser))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("empty");
     }
