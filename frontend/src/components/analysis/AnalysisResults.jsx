@@ -22,7 +22,7 @@ export default function AnalysisResults({ results, file, onReset, isRealAnalysis
     if (isRealAnalysis && results.pitch) {
       // Save as real F0 analysis session
       saveSession({
-        title: file?.name ? `F0 Take — ${file.name.replace(/\.[^/.]+$/, '')}` : 'F0 Practice Take',
+        title: file?.name ? `F0 Take — ${file.name.replace(/\\.[^/.]+$/, '')}` : 'F0 Practice Take',
         duration: results.audio?.durationSeconds
           ? `${Math.floor(results.audio.durationSeconds / 60)}m ${Math.round(results.audio.durationSeconds % 60)}s`
           : '0m 0s',
@@ -40,11 +40,11 @@ export default function AnalysisResults({ results, file, onReset, isRealAnalysis
         pitchStability: results.pitch?.stability,
         voicingRatio: results.pitch?.voicingRatio,
         frameCount: results.pitch?.frameCount,
-        // Legacy score (derived from stability for backward compat)
-        score: results.metrics?.stabilityPercentage ?? results.metrics?.overallScore ?? 0,
-        accuracy: results.metrics?.voicingPercentage ?? 0,
-        stability: results.metrics?.stabilityPercentage ?? 0,
-        consistency: results.metrics?.stabilityPercentage ?? 0,
+        // Score derived from stability for backward compat
+        score: results.pitch?.stability ? results.pitch.stability * 100 : 0,
+        accuracy: results.pitch?.voicingRatio ? results.pitch.voicingRatio * 100 : 0,
+        stability: results.pitch?.stability ? results.pitch.stability * 100 : 0,
+        consistency: results.pitch?.stability ? results.pitch.stability * 100 : 0,
         consistencyLabel: results.pitch?.stability
           ? results.pitch.stability > 0.8 ? 'Steady' : results.pitch.stability > 0.5 ? 'Moderate' : 'Variable'
           : 'N/A',

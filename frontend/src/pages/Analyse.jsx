@@ -48,34 +48,40 @@ export default function Analyse() {
     setAnalysisPhase('uploading');
 
     try {
-      // Phase 1: Upload
+      // Phase 1: Upload and Analyse
+      // The backend does both. We update the phase to 'analysing' immediately 
+      // after upload starts to reflect server-side processing.
       setAnalysisPhase('uploading');
-      setCurrentState(WORKFLOW_STATES.ANALYSING);
-      setAnalysisPhase('analysing');
+      
+      // We can't easily track upload progress without XHR, so we simulate 
+      // a transition to 'analysing' after a short delay or just call the API.
+      setTimeout(() => setAnalysisPhase('analysing'), 1000);
 
-      // Phase 2: Real backend analysis
       const result = await uploadForAnalysis(selectedFile, { timeoutMs: 30000 });
 
       // Phase 3: Results
       if (!result) {
         throw new Error('No result returned from analysis');
       }
+      
+      // Backend response already includes 'analysisVersion' and 'audio' data.
+      // We ensure the source is 'real' for real API responses.
+      setAnalysisResults({
+        ...result,
+        source: 'real', 
+      });
+      setAnalysisSource('real');
       setAnalysisPhase('complete');
-      setAnalysisResults(result);
-      setAnalysisSource(result.source);
       setCurrentState(WORKFLOW_STATES.RESULTS);
     } catch (err) {
-      // Backend unavailable or analysis failed — use demo fallback
       console.warn('Backend analysis failed, using demo fallback:', err.message);
-
-      // No artificial delay — show fallback results immediately when backend unavailable
 
       setAnalysisResults({
         ...demoAnalysisResult,
         source: 'demo',
         fallback: true,
         analysisVersion: 'heuristic-prototype-v1',
-        feedback: 'Backend analysis unavailable. Showing demonstration metrics.',
+        feedback: err instanceof ApiError ? err.message : 'Backend analysis unavailable. Showing demonstration metrics.',
       });
       setAnalysisSource('demo');
       setAnalysisPhase('complete');
